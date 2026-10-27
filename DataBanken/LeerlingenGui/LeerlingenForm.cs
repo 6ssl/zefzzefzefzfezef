@@ -331,11 +331,12 @@ internal sealed class LeerlingenForm : Form
 
     private static Button CreateButton(string text, Color background, Color foreground, EventHandler onClick)
     {
-        var button = new AnimatedButton
+        var button = new Button
         {
             Text = text,
             AutoSize = true,
             MinimumSize = new Size(94, 38),
+            FlatStyle = FlatStyle.Flat,
             BackColor = background,
             ForeColor = foreground,
             Font = new Font("Segoe UI Semibold", 9, FontStyle.Bold),
@@ -343,6 +344,9 @@ internal sealed class LeerlingenForm : Form
             Margin = new Padding(0, 0, 8, 8),
             Padding = new Padding(8, 0, 8, 0)
         };
+        button.FlatAppearance.BorderSize = 0;
+        button.FlatAppearance.MouseOverBackColor = ControlPaint.Light(background, 0.12f);
+        button.FlatAppearance.MouseDownBackColor = ControlPaint.Dark(background, 0.08f);
         button.Click += onClick;
         return button;
     }
@@ -481,201 +485,5 @@ internal sealed class LeerlingenForm : Form
             "Databasefout",
             MessageBoxButtons.OK,
             MessageBoxIcon.Error);
-    }
-}
-
-internal sealed class AnimatedButton : Button
-{
-    private readonly System.Windows.Forms.Timer _animationTimer = new() { Interval = 15 };
-    private float _hoverProgress;
-    private bool _isHovered;
-    private bool _isAnimatingRipple;
-    private float _rippleProgress;
-    private Point _rippleCenter;
-
-    public AnimatedButton()
-    {
-        FlatStyle = FlatStyle.Flat;
-        FlatAppearance.BorderSize = 0;
-        UseVisualStyleBackColor = false;
-        SetStyle(
-            ControlStyles.UserPaint |
-            ControlStyles.AllPaintingInWmPaint |
-            ControlStyles.OptimizedDoubleBuffer |
-            ControlStyles.ResizeRedraw,
-            true);
-
-        _animationTimer.Tick += Animate;
-    }
-
-    protected override void OnMouseEnter(EventArgs e)
-    {
-        base.OnMouseEnter(e);
-        _isHovered = true;
-        StartAnimation();
-    }
-
-    protected override void OnMouseLeave(EventArgs e)
-    {
-        base.OnMouseLeave(e);
-        _isHovered = false;
-        StartAnimation();
-    }
-
-    protected override void OnMouseDown(MouseEventArgs e)
-    {
-        base.OnMouseDown(e);
-        if (e.Button == MouseButtons.Left)
-        {
-            _rippleCenter = e.Location;
-            _rippleProgress = 0;
-            _isAnimatingRipple = true;
-            StartAnimation();
-        }
-    }
-
-    protected override void OnPaint(PaintEventArgs e)
-    {
-        e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-        Rectangle bounds = ClientRectangle;
-        bounds.Width -= 1;
-        bounds.Height -= 2;
-        if (bounds.Width <= 0 || bounds.Height <= 0)
-        {
-            return;
-        }
-
-        Color baseColor = Enabled ? BackColor : SystemColors.Control;
-        Color hoverColor = Enabled ? ControlPaint.Light(baseColor, 0.12f) : baseColor;
-        Color fillColor = Blend(baseColor, hoverColor, _hoverProgress);
-        Rectangle face = bounds;
-        face.Height -= 2;
-
-        using (var shadowPath = CreateRoundedPath(bounds, 10))
-        using (var shadowBrush = new SolidBrush(Color.FromArgb(20, 15, 23, 42)))
-        {
-            e.Graphics.TranslateTransform(0, 2);
-            e.Graphics.FillPath(shadowBrush, shadowPath);
-            e.Graphics.ResetTransform();
-        }
-
-        using (var facePath = CreateRoundedPath(face, 10))
-        using (var gradient = new System.Drawing.Drawing2D.LinearGradientBrush(
-            face,
-            ControlPaint.Light(fillColor, 0.08f),
-            fillColor,
-            System.Drawing.Drawing2D.LinearGradientMode.Vertical))
-        using (var borderPen = new Pen(Color.FromArgb(36, ForeColor), 1))
-        {
-            e.Graphics.FillPath(gradient, facePath);
-
-            if (_isAnimatingRipple)
-            {
-                System.Drawing.Drawing2D.GraphicsState state = e.Graphics.Save();
-                e.Graphics.SetClip(facePath);
-                float radius = MathF.Sqrt(face.Width * face.Width + face.Height * face.Height)
-                    * _rippleProgress;
-                int alpha = (int)(48 * (1 - _rippleProgress));
-                using var rippleBrush = new SolidBrush(Color.FromArgb(alpha, ForeColor));
-                e.Graphics.FillEllipse(
-                    rippleBrush,
-                    _rippleCenter.X - radius,
-                    _rippleCenter.Y - radius,
-                    radius * 2,
-                    radius * 2);
-                e.Graphics.Restore(state);
-            }
-
-            e.Graphics.DrawPath(borderPen, facePath);
-
-            TextRenderer.DrawText(
-                e.Graphics,
-                Text,
-                Font,
-                face,
-                Enabled ? ForeColor : SystemColors.GrayText,
-                TextFormatFlags.HorizontalCenter |
-                    TextFormatFlags.VerticalCenter |
-                    TextFormatFlags.SingleLine |
-                    TextFormatFlags.HidePrefix);
-        }
-
-        if (Focused && ShowFocusCues)
-        {
-            Rectangle focusBounds = Rectangle.Inflate(face, -8, -6);
-            ControlPaint.DrawFocusRectangle(e.Graphics, focusBounds, ForeColor, fillColor);
-        }
-    }
-
-    protected override void Dispose(bool disposing)
-    {
-        if (disposing)
-        {
-            _animationTimer.Dispose();
-        }
-
-        base.Dispose(disposing);
-    }
-
-    private void Animate(object? sender, EventArgs e)
-    {
-        float targetHover = _isHovered ? 1 : 0;
-        _hoverProgress = MoveTowards(_hoverProgress, targetHover, 0.16f);
-        if (_isAnimatingRipple)
-        {
-            _rippleProgress += 0.12f;
-            if (_rippleProgress >= 1)
-            {
-                _rippleProgress = 1;
-                _isAnimatingRipple = false;
-            }
-        }
-
-        Invalidate();
-        if (!_isAnimatingRipple && _hoverProgress == targetHover)
-        {
-            _animationTimer.Stop();
-        }
-    }
-
-    private void StartAnimation()
-    {
-        if (!_animationTimer.Enabled)
-        {
-            _animationTimer.Start();
-        }
-    }
-
-    private static float MoveTowards(float current, float target, float amount)
-    {
-        if (MathF.Abs(target - current) <= amount)
-        {
-            return target;
-        }
-
-        return current + MathF.Sign(target - current) * amount;
-    }
-
-    private static Color Blend(Color from, Color to, float amount) => Color.FromArgb(
-        (int)(from.A + (to.A - from.A) * amount),
-        (int)(from.R + (to.R - from.R) * amount),
-        (int)(from.G + (to.G - from.G) * amount),
-        (int)(from.B + (to.B - from.B) * amount));
-
-    private static System.Drawing.Drawing2D.GraphicsPath CreateRoundedPath(Rectangle bounds, int radius)
-    {
-        var path = new System.Drawing.Drawing2D.GraphicsPath();
-        int diameter = Math.Min(radius * 2, Math.Min(bounds.Width, bounds.Height));
-        var corner = new Rectangle(bounds.Location, new Size(diameter, diameter));
-
-        path.AddArc(corner, 180, 90);
-        corner.X = bounds.Right - diameter;
-        path.AddArc(corner, 270, 90);
-        corner.Y = bounds.Bottom - diameter;
-        path.AddArc(corner, 0, 90);
-        corner.X = bounds.Left;
-        path.AddArc(corner, 90, 90);
-        path.CloseFigure();
-        return path;
     }
 }
