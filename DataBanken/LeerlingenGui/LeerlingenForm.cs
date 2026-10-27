@@ -238,15 +238,16 @@ internal sealed class LeerlingenForm : Form
         {
             Dock = DockStyle.Fill,
             ColumnCount = 3,
-            RowCount = 4,
+            RowCount = 5,
             BackColor = KaartKleur
         };
         layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 47));
         layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 19));
         layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 34));
         layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 38));
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 64));
-        layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 26));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 44));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 48));
         layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 24));
 
         layout.Controls.Add(new Label
@@ -276,27 +277,42 @@ internal sealed class LeerlingenForm : Form
         layout.Controls.Add(_naamTextBox, 0, 2);
         layout.Controls.Add(_leeftijdNumeric, 1, 2);
 
-        var buttons = new FlowLayoutPanel
+        var actions = new TableLayoutPanel
         {
             Dock = DockStyle.Fill,
-            AutoSize = false,
-            WrapContents = true,
-            FlowDirection = FlowDirection.LeftToRight,
-            Anchor = AnchorStyles.Left | AnchorStyles.Bottom,
-            Margin = new Padding(0, 0, 0, 3),
-            Padding = new Padding(0, 0, 0, 0)
+            ColumnCount = 3,
+            RowCount = 1,
+            Margin = new Padding(0, 2, 0, 2)
         };
-        buttons.Controls.Add(CreateButton("Toevoegen", AccentKleur, Color.White, (_, _) => VoegLeerlingToe()));
-        buttons.Controls.Add(CreateButton("Wijzigen", Color.FromArgb(238, 242, 255), AccentKleur, (_, _) => WijzigLeerling()));
-        buttons.Controls.Add(CreateButton("Verwijderen", Color.FromArgb(254, 242, 242), FoutKleur, (_, _) => VerwijderLeerling()));
-        layout.Controls.Add(buttons, 2, 2);
+        for (int column = 0; column < 3; column++)
+        {
+            actions.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f / 3));
+        }
+
+        actions.Controls.Add(CreateActionButton(
+            "Toevoegen",
+            AccentKleur,
+            Color.White,
+            (_, _) => VoegLeerlingToe()), 0, 0);
+        actions.Controls.Add(CreateActionButton(
+            "Wijzigen",
+            Color.FromArgb(238, 242, 255),
+            AccentKleur,
+            (_, _) => WijzigLeerling()), 1, 0);
+        actions.Controls.Add(CreateActionButton(
+            "Verwijderen",
+            Color.FromArgb(254, 242, 242),
+            FoutKleur,
+            (_, _) => VerwijderLeerling()), 2, 0);
+        layout.Controls.Add(actions, 0, 3);
+        layout.SetColumnSpan(actions, 3);
 
         _statusLabel.AutoSize = true;
         _statusLabel.ForeColor = GedempteTekstKleur;
         _statusLabel.Font = new Font("Segoe UI", 9);
         _statusLabel.Anchor = AnchorStyles.Left;
         _statusLabel.Margin = new Padding(0, 5, 0, 0);
-        layout.Controls.Add(_statusLabel, 0, 3);
+        layout.Controls.Add(_statusLabel, 0, 4);
         layout.SetColumnSpan(_statusLabel, 3);
 
         card.Controls.Add(layout);
@@ -332,6 +348,15 @@ internal sealed class LeerlingenForm : Form
         button.FlatAppearance.MouseOverBackColor = ControlPaint.Light(background, 0.12f);
         button.FlatAppearance.MouseDownBackColor = ControlPaint.Dark(background, 0.08f);
         button.Click += onClick;
+        return button;
+    }
+
+    private static Button CreateActionButton(string text, Color background, Color foreground, EventHandler onClick)
+    {
+        var button = CreateButton(text, background, foreground, onClick);
+        button.AutoSize = false;
+        button.Dock = DockStyle.Fill;
+        button.Margin = new Padding(0, 0, 8, 0);
         return button;
     }
 
