@@ -119,7 +119,7 @@ public static class DatabaseApp
         return Convert.ToInt64(command.ExecuteScalar());
     }
 
-    public static void AddLeerling(string naam, int leeftijd)
+    public static int AddLeerling(string naam, int leeftijd)
     {
         ValidateLeerling(naam, leeftijd);
 
@@ -129,6 +129,25 @@ public static class DatabaseApp
         using var command = new MySqlCommand(sql, connection);
         command.Parameters.AddWithValue("@naam", naam.Trim());
         command.Parameters.AddWithValue("@leeftijd", leeftijd);
+        command.ExecuteNonQuery();
+        return checked((int)command.LastInsertedId);
+    }
+
+    public static void RestoreDeletedLeerling(Leerling leerling)
+    {
+        ValidateLeerling(leerling.Naam, leerling.Leeftijd);
+        if (leerling.Id <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(leerling), "Het ID moet positief zijn.");
+        }
+
+        using var connection = new MySqlConnection(ConnectionString);
+        connection.Open();
+        const string sql = "INSERT INTO floep (Id, Naam, Leeftijd) VALUES (@id, @naam, @leeftijd)";
+        using var command = new MySqlCommand(sql, connection);
+        command.Parameters.AddWithValue("@id", leerling.Id);
+        command.Parameters.AddWithValue("@naam", leerling.Naam.Trim());
+        command.Parameters.AddWithValue("@leeftijd", leerling.Leeftijd);
         command.ExecuteNonQuery();
     }
 
