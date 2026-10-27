@@ -110,6 +110,15 @@ public static class DatabaseApp
         return leerlingen;
     }
 
+    public static long GetLeerlingenCount()
+    {
+        using var connection = new MySqlConnection(ConnectionString);
+        connection.Open();
+        const string sql = "SELECT COUNT(*) FROM floep";
+        using var command = new MySqlCommand(sql, connection);
+        return Convert.ToInt64(command.ExecuteScalar());
+    }
+
     public static void AddLeerling(string naam, int leeftijd)
     {
         ValidateLeerling(naam, leeftijd);

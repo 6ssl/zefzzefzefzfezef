@@ -340,11 +340,14 @@ internal sealed class LeerlingenForm : Form
         try
         {
             DatabaseApp.EnsureDatabase();
+            long aantalInDatabase = DatabaseApp.GetLeerlingenCount();
             List<Leerling> leerlingen = DatabaseApp.GetLeerlingen();
             _leerlingenGrid.DataSource = leerlingen;
-            _aantalLabel.Text = $"{leerlingen.Count} {(leerlingen.Count == 1 ? "leerling" : "leerlingen")}";
+            _aantalLabel.Text = $"{aantalInDatabase} {(aantalInDatabase == 1 ? "leerling" : "leerlingen")}";
             _legeLijstLabel.Visible = leerlingen.Count == 0;
-            _statusLabel.Text = "Lijst bijgewerkt.";
+            _statusLabel.Text = aantalInDatabase == leerlingen.Count
+                ? "Lijst bijgewerkt."
+                : $"{aantalInDatabase} in database; {leerlingen.Count} weergegeven.";
         }
         catch (MySqlException foutmelding)
         {
