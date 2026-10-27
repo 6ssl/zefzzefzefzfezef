@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ConsoleApp1.csproj" />
+    <ProjectReference Include="..\DataBanken\leerlingenConsole\ConsoleApp1.csproj" />
   </ItemGroup>
 
 </Project>

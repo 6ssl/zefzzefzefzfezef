@@ -1,0 +1,12 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "type": "command",
+        "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File .github/hooks/auto-commit.ps1",
+        "windows": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File .github/hooks/auto-commit.ps1",
+        "timeout": 300
+      }
+    ]
+  }
+}
