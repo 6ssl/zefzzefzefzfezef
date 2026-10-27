@@ -1,0 +1,28 @@
+-- Maak de database aan
+CREATE DATABASE IF NOT EXISTS test;
+
+-- Selecteer de database
+USE test;
+
+-- Maak de tabel aan
+CREATE TABLE IF NOT EXISTS floep (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    naam VARCHAR(100) NOT NULL,
+    leeftijd INT NOT NULL
+);
+
+-- Voeg gegevens in
+INSERT INTO floep (naam, leeftijd) VALUES
+('Jan Jansen', 28),
+('Maria Garcia', 35),
+('Peter Mueller', 42),
+('Lisa van den Berg', 31),
+('Ahmed Bouali', 26),
+('Sophie Dupont', 39),
+('Marco Rossi', 45),
+('Emma Andersson', 29),
+('Thomas Klein', 38),
+('Nina Kovács', 33);
+
+-- Toon de ingevoerde gegevens
+SELECT * FROM floep;
